@@ -1,5 +1,5 @@
 [project]
-name = "adk-utils"
+name = "adkutils"
 version = "0.1.0"
 description = "CLI utility to manage: reasoning engine agents, authorizations, gemini enterprise agents, etc."
 readme = "README.md"
@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["adk-utils"]
+packages = ["adkutils"]
 
 [project.scripts]
-adk-utils = "adk-utils.adk-utils:app"
+adk-utils = "adkutils:main.app"
