@@ -1,10 +1,10 @@
 import typer
 
-import agent
-import authorization
-import gemini_app
-import reasoning_engine
-import ai_lro
+from . import agent
+from . import authorization
+from . import gemini_app
+from . import reasoning_engine
+from . import ai_lro
 
 app = typer.Typer(no_args_is_help=True)
 app.add_typer(agent.app, name="agent")

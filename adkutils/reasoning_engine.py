@@ -1,6 +1,6 @@
 import typer
 import json
-from helpers import AiPlatformRequestHelper
+from .helpers import AiPlatformRequestHelper
 from rich.console import Console
 from rich.table import Table
 from rich import box

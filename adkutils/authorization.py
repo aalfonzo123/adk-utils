@@ -1,10 +1,10 @@
 import typer
-from helpers import DiscoveryEngineRequestHelper
+from .helpers import DiscoveryEngineRequestHelper
 from rich.console import Console
 from rich.table import Table
 from rich import box
 from rich import print as rprint
-from rich_utils import rich_format_url
+from .rich_utils import rich_format_url
 import json
 from urllib.parse import urlencode
 from typing_extensions import Annotated

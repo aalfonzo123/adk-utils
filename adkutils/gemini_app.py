@@ -3,7 +3,7 @@ from rich.console import Console
 from rich.table import Table
 from rich import box
 
-from helpers import DiscoveryEngineRequestHelper
+from .helpers import DiscoveryEngineRequestHelper
 
 app = typer.Typer(no_args_is_help=True)
 

@@ -1,5 +1,5 @@
 import typer
-from helpers import DiscoveryEngineRequestHelper
+from .helpers import DiscoveryEngineRequestHelper
 from rich.console import Console
 from rich.table import Table
 from rich import box

@@ -1,4 +1,4 @@
-from google_request_helper import GoogleRequestHelper
+from .google_request_helper import GoogleRequestHelper
 
 class DiscoveryEngineRequestHelper(GoogleRequestHelper):
     def __init__(self, project_id, location):

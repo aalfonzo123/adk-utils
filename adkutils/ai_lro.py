@@ -7,7 +7,7 @@ from rich import print as rprint
 import json
 import time
 
-from helpers import AiPlatformRequestHelper
+from .helpers import AiPlatformRequestHelper
 
 app = typer.Typer(no_args_is_help=True)
 
