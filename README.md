@@ -15,13 +15,13 @@ It is mainly a wrapper around REST methods for those functionalities, using thes
 
 ## How to use
 
-For occasional use, uvx works:
-
-`uvx --from git+https://github.com/aalfonzo123/adk-utils`
-
-For regular use, uv tool install is better:
+For regular use, execute this "uv tool install":
 
 `uv tool install git+https://github.com/aalfonzo123/adk-utils`
+
+For occasional use, uvx works:
+
+`uvx --from git+https://github.com/aalfonzo123/adk-utils adk-utils`
 
 See also: [uv tools documentation](https://docs.astral.sh/uv/guides/tools/#requesting-different-sources)
 
