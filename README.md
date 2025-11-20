@@ -8,6 +8,12 @@ This is a CLI utility to manage:
 - Gemini Enterprise agents
 - Vertex AI long running operations
 
+
+Workflow:
+![workflow](workflow.webp)
+
+
+
 It is mainly a wrapper around REST methods for those functionalities, using these libraries:
 - [Requests](https://requests.readthedocs.io/en/latest/) to execute http methods
 - [Typer](https://typer.tiangolo.com/), to easily convert Python functions into CLI commands
