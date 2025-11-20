@@ -29,155 +29,249 @@ See also: [uv tools documentation](https://docs.astral.sh/uv/guides/tools/#reque
 
 - Check [Cyclopts](https://github.com/BrianPugh/cyclopts) as replacement to Typer, to get automatic docstring parsing into parameter help
 
-# ADK Utils CLI Cheat Sheet
+## Cheat sheet
 
-This guide provides a quick reference to the commands available in the ADK Utils CLI. The base command is `python -m adk_utils.main`, which we will refer to as `adk` for brevity.
+All commands are available under the `adk-utils` entry point.
+
+### Agent Management (`agent`)
+
+Commands for managing Agents in Google Cloud Discovery Engine.
+
+#### `adk-utils agent create-or-update`
+
+Registers or updates an agent with Agentspace.
+
+**Usage:**
+```bash
+adk-utils agent create-or-update <project_id> <location> <gemini_app_id> <display_name> <description> <tool_description> <reasoning_engine_id> <reasoning_engine_location> [OPTIONS]
+```
+
+**Positional Arguments:**
+- `project_id`: The Google Cloud project ID.
+- `location`: The Google Cloud location for the Agentspace resources.
+- `gemini_app_id`: The ID of the Gemini app (Discovery Engine engine).
+- `display_name`: The display name of the agent.
+- `description`: The description of the agent for the user.
+- `tool_description`: The description of the agent for the LLM.
+- `reasoning_engine_id`: The ID of the reasoning engine endpoint.
+- `reasoning_engine_location`: The Google Cloud location where the ADK deployment (reasoning engine) resides.
+
+**Options:**
+- `--auth-ids TEXT`: A list of authorization resource IDs. (Can be specified multiple times)
+- `--icon-uri TEXT`: The public URI of the agent's icon.
+- `--existing-agent-id TEXT`: The ID of an existing agent to update.
 
 ---
 
-## `agent`
+#### `adk-utils agent delete`
 
-Manage Agents in Google Cloud Discovery Engine.
+Deletes an agent from Agentspace.
 
-### `adk agent create-or-update`
+**Usage:**
+```bash
+adk-utils agent delete <project_id> <location> <gemini_app_id> <agent_id>
+```
 
-Registers or updates an agent.
+**Positional Arguments:**
+- `project_id`: The Google Cloud project ID.
+- `location`: The Google Cloud location for the Agentspace resources.
+- `gemini_app_id`: The ID of the Gemini app (Discovery Engine engine).
+- `agent_id`: The ID of the agent to delete.
 
--   `--project-id`: (str) The Google Cloud project ID.
--   `--location`: (str) The Google Cloud location for the Agentspace resources.
--   `--gemini-app-id`: (str) The ID of the Gemini app (Discovery Engine engine).
--   `--display-name`: (str) The display name of the agent.
--   `--description`: (str) The description of the agent for the user.
--   `--tool-description`: (str) The description of the agent for the LLM.
--   `--reasoning-engine-id`: (str) The ID of the reasoning engine endpoint.
--   `--reasoning-engine-location`: (str) The Google Cloud location where the ADK deployment resides.
--   `--auth-ids`: (List[str]) A list of authorization resource IDs. Can be specified multiple times.
--   `--icon-uri`: (str, optional) The public URI of the agent's icon.
--   `--existing-agent-id`: (str, optional) The ID of an existing agent to update.
+---
 
-### `adk agent delete`
-
-Deletes an agent.
-
--   `--project-id`: (str) The Google Cloud project ID.
--   `--location`: (str) The Google Cloud location for the Agentspace resources.
--   `--gemini-app-id`: (str) The ID of the Gemini app (Discovery Engine engine).
--   `--agent-id`: (str) The ID of the agent to delete.
-
-### `adk agent list`
+#### `adk-utils agent list`
 
 Lists all agents for a given Gemini App.
 
--   `--project-id`: (str) The Google Cloud project ID.
--   `--location`: (str) The Google Cloud location for the Agentspace resources.
--   `--app-id`: (str) The ID of the Gemini app (Discovery Engine engine).
+**Usage:**
+```bash
+adk-utils agent list <project_id> <location> <app_id>
+```
+
+**Positional Arguments:**
+- `project_id`: The Google Cloud project ID.
+- `location`: The Google Cloud location for the Agentspace resources.
+- `app_id`: The ID of the Gemini app (Discovery Engine engine).
 
 ---
 
-## `authorization`
+### Authorization Management (`authorization`)
 
-Manage Authorizations for agents.
+Commands for managing Authorizations in Google Cloud Discovery Engine.
 
-### `adk authorization list`
-
-Lists all authorizations.
-
--   `--project-id`: (str) The Google Cloud project ID.
--   `--location`: (str) The Google Cloud location for the Discovery Engine resources.
--   `--format-raw`: (bool, optional) If True, prints the raw JSON data.
-
-### `adk authorization create`
+#### `adk-utils authorization create`
 
 Creates a new authorization.
 
--   `--project-id`: (str) The Google Cloud project ID.
--   `--location`: (str) The Google Cloud location for the Discovery Engine resources.
--   `--auth-id`: (str) The ID for the new authorization.
--   `--client-id`: (str) The OAuth 2.0 client ID.
--   `--client-secret`: (str) The OAuth 2.0 client secret (will be prompted for).
--   `--base-auth-uri`: (str, optional) The base URI for the authorization server.
--   `--token-uri`: (str, optional) The URI for the token server.
--   `--scopes`: (List[str], optional) A list of OAuth 2.0 scopes. Can be specified multiple times.
--   `--format-raw`: (bool, optional) If True, prints the raw JSON data.
+**Usage:**
+```bash
+adk-utils authorization create <project_id> <location> <auth_id> <client_id> [OPTIONS]
+```
 
-### `adk authorization delete`
+**Positional Arguments:**
+- `project_id`: The Google Cloud project ID.
+- `location`: The Google Cloud location for the Discovery Engine resources.
+- `auth_id`: The ID for the new authorization.
+- `client_id`: The OAuth 2.0 client ID.
+
+**Options:**
+- `--client-secret`: The OAuth 2.0 client secret (will be prompted for).
+- `--base-auth-uri TEXT`: The base URI for the authorization server. (Default: `https://accounts.google.com/o/oauth2/v2/auth`)
+- `--token-uri TEXT`: The URI for the token server. (Default: `https://oauth2.googleapis.com/token`)
+- `--scopes TEXT`: A list of OAuth 2.0 scopes. (Default: `https://www.googleapis.com/auth/cloud-platform`, `openid`)
+- `--format-raw`: If True, prints the raw JSON data.
+
+---
+
+#### `adk-utils authorization delete`
 
 Deletes an authorization.
 
--   `--project-id`: (str) The Google Cloud project ID.
--   `--location`: (str) The Google Cloud location for the Discovery Engine resources.
--   `--auth-id`: (str) The ID of the authorization to delete.
+**Usage:**
+```bash
+adk-utils authorization delete <project_id> <location> <auth_id>
+```
+
+**Positional Arguments:**
+- `project_id`: The Google Cloud project ID.
+- `location`: The Google Cloud location for the Discovery Engine resources.
+- `auth_id`: The ID of the authorization to delete.
 
 ---
 
-## `gemini-app`
+#### `adk-utils authorization list`
 
-Manage Gemini Apps (Discovery Engine Engines).
+Lists all authorizations for a given project and location.
 
-### `adk gemini-app list`
+**Usage:**
+```bash
+adk-utils authorization list <project_id> <location> [OPTIONS]
+```
 
-Lists all Gemini Apps.
+**Positional Arguments:**
+- `project_id`: The Google Cloud project ID.
+- `location`: The Google Cloud location for the Discovery Engine resources.
 
--   `--project-id`: (str) The Google Cloud project ID.
--   `--location`: (str) The Google Cloud location for the Discovery Engine resources.
+**Options:**
+- `--format-raw`: If True, prints the raw JSON data.
 
 ---
 
-## `reasoning-engine`
+### Gemini App Management (`gemini-app`)
 
-Manage Reasoning Engines in Google Cloud AI Platform.
+Commands for managing Gemini Apps (Discovery Engine Engines).
 
-### `adk reasoning-engine deploy-from-source`
+#### `adk-utils gemini-app list`
+
+Lists all Gemini Apps for a given project and location.
+
+**Usage:**
+```bash
+adk-utils gemini-app list <project_id> <location>
+```
+
+**Positional Arguments:**
+- `project_id`: The Google Cloud project ID.
+- `location`: The Google Cloud location for the Discovery Engine resources.
+
+---
+
+### Reasoning Engine Management (`reasoning-engine`)
+
+Commands for managing Reasoning Engines in Google Cloud AI Platform.
+
+#### `adk-utils reasoning-engine deploy-from-source`
 
 Deploys a reasoning engine from a local source directory.
 
--   `--project-id`: (str) The Google Cloud project ID.
--   `--location`: (str) The Google Cloud location for the reasoning engine.
--   `--source-dir`: (str) The path to the local directory containing the source code.
--   `--name`: (str) The name of the reasoning engine.
--   `--display-name`: (str) The display name of the reasoning engine.
--   `--entrypointModule`: (str, optional) The Python module containing the entrypoint.
--   `--entrypointObject`: (str, optional) The object within the entrypoint module to be invoked.
--   `--requirementsFile`: (str, optional) The name of the requirements file.
--   `--pythonVersion`: (str, optional) The Python version to use.
--   `--process-env-file`: (bool, optional) Excludes the .env file from the tarball and includes its contents in the deployment definition.
--   `--existing-agent-engine-id`: (str, optional) The ID of an existing Agent Engine to redeploy.
+**Usage:**
+```bash
+adk-utils reasoning-engine deploy-from-source <project_id> <location> <source_dir> <name> <display_name> [OPTIONS]
+```
 
-### `adk reasoning-engine list`
+**Positional Arguments:**
+- `project_id`: The Google Cloud project ID.
+- `location`: The Google Cloud location for the reasoning engine.
+- `source_dir`: The path to the local directory containing the source code.
+- `name`: The name of the reasoning engine.
+- `display_name`: The display name of the reasoning engine.
 
-Lists all reasoning engines.
-
--   `--project-id`: (str) The Google Cloud project ID.
--   `--location`: (str) The Google Cloud location for the AI Platform resources.
-
-### `adk reasoning-engine delete`
-
-Deletes a reasoning engine.
-
--   `--project-id`: (str) The Google Cloud project ID.
--   `--location`: (str) The Google Cloud location for the AI Platform resources.
--   `--agent-engine-id`: (str) The ID of the reasoning engine to delete.
--   `--force`: (bool, optional) If True, forces the deletion.
+**Options:**
+- `--entrypointModule TEXT`: The Python module containing the entrypoint. (Default: `agent`)
+- `--entrypointObject TEXT`: The object within the entrypoint module to be invoked. (Default: `root_agent_adk`)
+- `--requirementsFile TEXT`: The name of the requirements file. (Default: `requirements.txt`)
+- `--pythonVersion TEXT`: The Python version to use. (Default: `3.12`)
+- `--process-env-file / --no-process-env-file`: Excludes the .env file from the tarball, and includes its contents in the deployment definition. (Default: `True`)
+- `--existing-agent-engine-id TEXT`: The ID of an existing Agent Engine to redeploy.
 
 ---
 
-## `ai-lro`
+#### `adk-utils reasoning-engine delete`
 
-Manage AI Platform Long-Running Operations (LROs).
+Deletes a reasoning engine.
 
-### `adk ai-lro list`
+**Usage:**
+```bash
+adk-utils reasoning-engine delete <project_id> <location> <agent_engine_id> [OPTIONS]
+```
 
-Lists the most recent LROs.
+**Positional Arguments:**
+- `project_id`: The Google Cloud project ID.
+- `location`: The Google Cloud location for the AI Platform resources.
+- `agent_engine_id`: The ID of the reasoning engine to delete.
 
--   `--project-id`: (str) The Google Cloud project ID.
--   `--location`: (str) The Google Cloud location for the AI Platform resources.
+**Options:**
+- `--force`: If True, forces the deletion of the reasoning engine.
 
-### `adk ai-lro follow`
+---
+
+#### `adk-utils reasoning-engine list`
+
+Lists all reasoning engines for a given project and location.
+
+**Usage:**
+```bash
+adk-utils reasoning-engine list <project_id> <location>
+```
+
+**Positional Arguments:**
+- `project_id`: The Google Cloud project ID.
+- `location`: The Google Cloud location for the AI Platform resources.
+
+---
+
+### AI Platform LRO Management (`ai-lro`)
+
+Commands for managing AI Platform Long-Running Operations (LROs).
+
+#### `adk-utils ai-lro follow`
 
 Follows the status of a specific LRO until it completes.
 
--   `--project-id`: (str) The Google Cloud project ID.
--   `--location`: (str) The Google Cloud location for the AI Platform resources.
--   `--reasoning-engine-id`: (str) The ID of the reasoning engine.
--   `--lro-id`: (str) The ID of the long-running operation to follow.
+**Usage:**
+```bash
+adk-utils ai-lro follow <project_id> <location> <reasoning_engine_id> <lro_id>
+```
+
+**Positional Arguments:**
+- `project_id`: The Google Cloud project ID.
+- `location`: The Google Cloud location for the AI Platform resources.
+- `reasoning_engine_id`: The ID of the reasoning engine.
+- `lro_id`: The ID of the long-running operation to follow.
+
+---
+
+#### `adk-utils ai-lro list`
+
+Lists the most recent LROs for a given project and location.
+
+**Usage:**
+```bash
+adk-utils ai-lro list <project_id> <location>
+```
+
+**Positional Arguments:**
+- `project_id`: The Google Cloud project ID.
+- `location`: The Google Cloud location for the AI Platform resources.
 
