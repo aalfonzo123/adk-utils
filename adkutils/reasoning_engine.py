@@ -255,4 +255,4 @@ async def remote_prompt(
     async for event in adk_app.streaming_agent_run_with_events(
         request_json=request_json_simple
     ):
-        print(event)
+        print(json.dumps(event))
