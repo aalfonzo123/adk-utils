@@ -1,4 +1,4 @@
-import typer
+from async_typer import AsyncTyper
 import os
 import json
 from .helpers import AiPlatformRequestHelper
@@ -11,9 +11,12 @@ import io
 import logging
 import base64
 from requests.exceptions import HTTPError
-from dotenv import dotenv_values, load_dotenv
+from dotenv import dotenv_values
+from rich.prompt import Prompt
 
-app = typer.Typer(no_args_is_help=True)
+from . import re_methods
+
+app = AsyncTyper(no_args_is_help=True)
 
 
 def print_list(data):
@@ -22,6 +25,7 @@ def print_list(data):
     table.add_column("Display Name")
     table.add_column("Update Time")
     table.add_column("Deployment Info")
+    table.add_column("Class Methods")
 
     for item in data.get("reasoningEngines", []):
         name = item["name"].split("/")[-1]
@@ -29,6 +33,9 @@ def print_list(data):
         updateTime = item.get("updateTime", "N.A")
 
         spec = item.get("spec", {})
+        class_methods = ", ".join(
+            [m.get("name", "[no-name]") for m in spec.get("classMethods", [])]
+        )
         sourceCodeSpec = spec.get("sourceCodeSpec", {})
         pythonSpec = sourceCodeSpec.get("pythonSpec", {})
         entrypointModule = pythonSpec.get("entrypointModule")
@@ -39,7 +46,7 @@ def print_list(data):
         else:
             deployment_info = "?"
 
-        table.add_row(name, display_name, updateTime, deployment_info)
+        table.add_row(name, display_name, updateTime, deployment_info, class_methods)
 
     console = Console(highlight=False)
     console.print(table)
@@ -49,7 +56,18 @@ def print_list(data):
 def list(project_id: str, location: str):
     helper = AiPlatformRequestHelper(project_id, location)
     try:
-        print_list(helper.get("reasoningEngines"))
+        data = helper.get("reasoningEngines")
+        while True:
+            print_list(data)
+            if next_page_token := data.get("nextPageToken"):
+                show_next = Prompt.ask(
+                    "show next page?", choices=["y", "n"], default="n"
+                )
+                if show_next == "n":
+                    break
+                data = helper.get("reasoningEngines", {"pageToken": next_page_token})
+            else:
+                break
     except HTTPError as e:
         rprint(f"[bright_red]{e.response.text}[/bright_red]")
 
@@ -87,7 +105,8 @@ def deploy_from_source(
     requirementsFile: str = "requirements.txt",
     pythonVersion: str = "3.12",
     process_env_file: bool = True,
-    existing_agent_engine_id: str = None,
+    existing_agent_engine_id: str | None = None,
+    service_account: str | None = None,
 ):
     """
     Deploys a reasoning engine from a local source directory.
@@ -120,6 +139,7 @@ def deploy_from_source(
         "displayName": display_name,
         "spec": {
             "agentFramework": "google-adk",
+            "classMethods": re_methods.AGENT_ENGINE_CLASS_METHODS,
             "deploymentSpec": {},
             "sourceCodeSpec": {
                 "inlineSource": {
@@ -148,6 +168,9 @@ def deploy_from_source(
             spec_env.append({"name": k, "value": v})
 
         payload["spec"]["deploymentSpec"]["env"] = spec_env
+
+    if service_account:
+        payload["spec"]["serviceAccount"] = service_account
 
     # Note: there is no updateMask on the patch call. Sadly, optimizations
     # such as updating only env vars do not work. The method fails saying
@@ -188,3 +211,48 @@ def delete(project_id: str, location: str, agent_engine_id: str, force: bool = F
         rprint(f"[green]Agent deleted[/green]")
     except HTTPError as e:
         rprint(f"[bright_red]{e.response.text}[/bright_red]")
+
+
+@app.async_command()
+async def remote_prompt(
+    project_id: str, location: str, agent_engine_id: str, prompt: str, auth_to_fill: str
+):
+    """Sends prompt to remote agent engine that was previously deployed.
+    This is used as a basic test.
+    Fills auth with token created from currently logged in user.
+    Note this works even if the auth doesn't even exist yet, it is filled
+    in the session as though it does exist.
+    Call is made using streaming_agent_run_with_events, so it is basically equivalent
+    to the call that Gemini Enterprise does."""
+    import vertexai
+    import google.auth as auth
+    from google.auth.transport import requests as req
+
+    client = vertexai.Client(project=project_id, location=location)
+
+    adk_app = client.agent_engines.get(
+        name=f"projects/{project_id}/locations/{location}/reasoningEngines/{agent_engine_id}"
+    )
+
+    print(
+        f"operation count:{len(adk_app.operation_schemas())}. Note: if 0, deployment was missing classMethods"
+    )
+    print("-" * 50)
+    creds, project_id = auth.default()
+    auth_req = req.Request()
+    creds.refresh(auth_req)
+    access_token = creds.token
+
+    request_json_simple = json.dumps(
+        {
+            "message": {
+                "role": "user",
+                "parts": [{"text": prompt}],
+            },
+            "authorizations": {auth_to_fill: {"accessToken": access_token}},
+        }
+    )
+    async for event in adk_app.streaming_agent_run_with_events(
+        request_json=request_json_simple
+    ):
+        print(event)
