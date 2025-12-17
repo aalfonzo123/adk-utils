@@ -25,7 +25,8 @@ def print_list(data):
     table.add_column("Display Name")
     table.add_column("Update Time")
     table.add_column("Deployment Info")
-    table.add_column("Class Methods")
+    # table.add_column("Class Methods")
+    table.add_column("Env vars")
 
     for item in data.get("reasoningEngines", []):
         name = item["name"].split("/")[-1]
@@ -33,9 +34,9 @@ def print_list(data):
         updateTime = item.get("updateTime", "N.A")
 
         spec = item.get("spec", {})
-        class_methods = ", ".join(
-            [m.get("name", "[no-name]") for m in spec.get("classMethods", [])]
-        )
+        # class_methods = ", ".join(
+        #     [m.get("name", "[no-name]") for m in spec.get("classMethods", [])]
+        # )
         sourceCodeSpec = spec.get("sourceCodeSpec", {})
         pythonSpec = sourceCodeSpec.get("pythonSpec", {})
         entrypointModule = pythonSpec.get("entrypointModule")
@@ -46,7 +47,11 @@ def print_list(data):
         else:
             deployment_info = "?"
 
-        table.add_row(name, display_name, updateTime, deployment_info, class_methods)
+        deploymentSpec = spec.get("deploymentSpec", {})
+        env = deploymentSpec.get("env", [])
+        env_vars = ", ".join([f"{e['name']}: {e['value']}" for e in env])
+
+        table.add_row(name, display_name, updateTime, deployment_info, env_vars)
 
     console = Console(highlight=False)
     console.print(table)
