@@ -4,6 +4,7 @@ from google import auth as google_auth
 from google.auth.transport import requests as google_requests
 from urllib.parse import urlencode
 
+
 class GoogleRequestHelper:
     def __init__(self, project_id, base_url):
         self.project_id = project_id
@@ -15,11 +16,19 @@ class GoogleRequestHelper:
             auth_request = google_requests.Request()
             credentials.refresh(auth_request)
             return credentials.token
-        except Exception as e:
-            raise Exception(f"FATAL: Could not get Google credentials. "
-                f"Ensure you have run 'gcloud auth application-default login'")
+        except Exception:
+            raise Exception(
+                "FATAL: Could not get Google credentials. "
+                "Ensure you have run 'gcloud auth application-default login'"
+            )
 
-    def _execute_request(self, method: str, url: str, data: dict = None, params: dict = None) -> dict:
+    def _execute_request(
+        self,
+        method: str,
+        url: str,
+        data: dict | None = None,
+        params: dict | None = None,
+    ) -> dict:
         """
         Executes an HTTP request using the requests library.
 
@@ -37,7 +46,9 @@ class GoogleRequestHelper:
             "X-Goog-User-Project": self.project_id,
         }
 
-        response = requests.request(method, self.base_url+url, headers=headers, json=data, params=params)
+        response = requests.request(
+            method, self.base_url + url, headers=headers, json=data, params=params
+        )
         response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
         return response.json()
 
@@ -48,18 +59,23 @@ class GoogleRequestHelper:
             "X-Goog-User-Project": self.project_id,
         }
 
-        response = requests.request("GET", f"https://cloudresourcemanager.googleapis.com/v1/projects/{self.project_id}", headers=headers)
+        response = requests.request(
+            "GET",
+            f"https://cloudresourcemanager.googleapis.com/v1/projects/{self.project_id}",
+            headers=headers,
+        )
         response.raise_for_status()
-        return response.json().get("projectNumber")     
+        return response.json().get("projectNumber")
 
-    def get(self, url, params: dict = None):
-        return self._execute_request('GET', url, params=params)
+    def get(self, url, params: dict | None = None):
+        return self._execute_request("GET", url, params=params)
 
     def post(self, url, data):
-        return self._execute_request('POST', url, data)
+        return self._execute_request("POST", url, data)
 
-    def delete(self, url, params: dict = None):
-        return self._execute_request('DELETE', url, params=params)
+    def delete(self, url, params: dict | None = None):
+        return self._execute_request("DELETE", url, params=params)
 
     def patch(self, url, data):
-        return self._execute_request('PATCH', url, data)
+        return self._execute_request("PATCH", url, data)
+

@@ -1,5 +1,5 @@
 import typer
-from .helpers import DiscoveryEngineRequestHelper
+from .helpers import DiscoveryEngineRequestHelper, paginate
 from rich.console import Console
 from rich.table import Table
 from rich import box
@@ -123,8 +123,10 @@ def print_list(data):
 @app.command()
 def list(project_id: str, location: str, app_id: str):
     helper = DiscoveryEngineRequestHelper(project_id, location)
-    print_list(
-        helper.get(
-            f"collections/default_collection/engines/{app_id}/assistants/default_assistant/agents"
-        )
+    paginate(
+        lambda params: helper.get(
+            f"collections/default_collection/engines/{app_id}/assistants/default_assistant/agents",
+            params,
+        ),
+        lambda data: print_list(data),
     )

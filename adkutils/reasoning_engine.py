@@ -1,7 +1,7 @@
 from async_typer import AsyncTyper
 import os
 import json
-from .helpers import AiPlatformRequestHelper
+from .helpers import AiPlatformRequestHelper, paginate
 from rich.console import Console
 from rich.table import Table
 from rich import box
@@ -12,7 +12,6 @@ import logging
 import base64
 from requests.exceptions import HTTPError
 from dotenv import dotenv_values
-from rich.prompt import Prompt
 
 from . import re_methods
 
@@ -60,21 +59,10 @@ def print_list(data):
 @app.command()
 def list(project_id: str, location: str):
     helper = AiPlatformRequestHelper(project_id, location)
-    try:
-        data = helper.get("reasoningEngines")
-        while True:
-            print_list(data)
-            if next_page_token := data.get("nextPageToken"):
-                show_next = Prompt.ask(
-                    "show next page?", choices=["y", "n"], default="n"
-                )
-                if show_next == "n":
-                    break
-                data = helper.get("reasoningEngines", {"pageToken": next_page_token})
-            else:
-                break
-    except HTTPError as e:
-        rprint(f"[bright_red]{e.response.text}[/bright_red]")
+    paginate(
+        lambda params: helper.get("reasoningEngines", params),
+        lambda data: print_list(data),
+    )
 
 
 def exclude_env_filter(tarinfo):
