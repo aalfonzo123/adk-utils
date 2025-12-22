@@ -1,4 +1,4 @@
-import typer
+from cyclopts import App
 from .helpers import DiscoveryEngineRequestHelper, paginate
 from rich.console import Console
 from rich.table import Table
@@ -10,8 +10,12 @@ from urllib.parse import urlencode
 from typing_extensions import Annotated
 from typing import List, Optional
 from requests.exceptions import HTTPError
+from .promptpwd import get_password
 
-app = typer.Typer(no_args_is_help=True)
+app = App(
+    "authorization",
+    help="commands related to gemini enterprise authorizations",
+)
 
 DEFAULT_SCOPES = ["https://www.googleapis.com/auth/cloud-platform", "openid"]
 
@@ -83,14 +87,11 @@ def create(
     location: str,
     auth_id: str,
     client_id: str,
-    client_secret: Annotated[
-        str, typer.Option(prompt=True, confirmation_prompt=True, hide_input=True)
-    ],
     base_auth_uri: str = "https://accounts.google.com/o/oauth2/v2/auth",
     token_uri: str = "https://oauth2.googleapis.com/token",
-    scopes: Annotated[Optional[List[str]], typer.Option()] = DEFAULT_SCOPES,
-    format_raw: bool = False,
+    scopes: List[str] = DEFAULT_SCOPES,
 ):
+    client_secret = get_password("client secret")
     helper = DiscoveryEngineRequestHelper(project_id, location)
 
     auth_uri = generate_auth_uri(

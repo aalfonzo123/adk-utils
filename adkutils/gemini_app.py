@@ -1,11 +1,14 @@
-import typer
+from cyclopts import App
 from rich.console import Console
 from rich.table import Table
 from rich import box
 
 from .helpers import DiscoveryEngineRequestHelper, paginate
 
-app = typer.Typer(no_args_is_help=True)
+app = App(
+    "gemini-app",
+    help="commands related to gemini enterprise applications",
+)
 
 
 def print_list(data):

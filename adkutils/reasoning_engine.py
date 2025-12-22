@@ -1,4 +1,4 @@
-from async_typer import AsyncTyper
+from cyclopts import App
 import os
 import json
 from .helpers import AiPlatformRequestHelper, paginate
@@ -15,7 +15,10 @@ from dotenv import dotenv_values
 
 from . import re_methods
 
-app = AsyncTyper(no_args_is_help=True)
+app = App(
+    "reasoning-engine",
+    help="commands related to reasoning engine (agent engine)",
+)
 
 
 def print_list(data):
@@ -183,7 +186,7 @@ def deploy_from_source(
         reasoning_engine_id = name_parts[5]
         lro_id = name_parts[7]
 
-        rprint(f"[green]Deployment started[/green]")
+        rprint("[green]Deployment started[/green]")
         rprint(
             f"To follow status of deployment ai-lro, run [green]adk-utils ai-lro follow {project_number} {location} {reasoning_engine_id} {lro_id}[/green]"
         )
@@ -201,12 +204,12 @@ def delete(project_id: str, location: str, agent_engine_id: str, force: bool = F
             params = None
 
         response = helper.delete(f"reasoningEngines/{agent_engine_id}", params)
-        rprint(f"[green]Agent deleted[/green]")
+        rprint("[green]Agent deleted[/green]")
     except HTTPError as e:
         rprint(f"[bright_red]{e.response.text}[/bright_red]")
 
 
-@app.async_command()
+@app.command()
 async def remote_prompt(
     project_id: str, location: str, agent_engine_id: str, prompt: str, auth_to_fill: str
 ):

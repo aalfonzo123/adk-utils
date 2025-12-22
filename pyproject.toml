@@ -1,16 +1,15 @@
 [project]
 name = "adkutils"
-version = "0.2.1"
+version = "0.3.0"
 description = "CLI utility to manage: reasoning engine agents, authorizations, gemini enterprise agents, etc."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "async-typer>=0.1.10",
+    "cyclopts>=4.4.0",
     "google-auth>=2.43.0",
     "google-cloud-aiplatform[adk,agent-engines]>=1.130.0",
     "python-dotenv>=1.2.1",
     "requests>=2.32.5",
-    "typer>=0.20.0",
 ]
 
 [tool.setuptools]

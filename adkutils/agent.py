@@ -1,4 +1,4 @@
-import typer
+from cyclopts import App
 from .helpers import DiscoveryEngineRequestHelper, paginate
 from rich.console import Console
 from rich.table import Table
@@ -8,7 +8,10 @@ from typing_extensions import Annotated
 from typing import List, Optional
 from requests.exceptions import HTTPError
 
-app = typer.Typer(no_args_is_help=True)
+app = App(
+    "agent",
+    help="commands related to gemini enterprise agent definitions (not to be confused with agent engine agents)",
+)
 
 
 @app.command()
@@ -21,7 +24,7 @@ def create_or_update(
     tool_description: str,
     reasoning_engine_id: str,
     reasoning_engine_location: str,
-    auth_ids: Annotated[List[str], typer.Option()] = [],
+    auth_ids: list[str],
     icon_uri: str | None = None,
     existing_agent_id: str | None = None,
 ):

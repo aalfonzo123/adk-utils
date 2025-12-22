@@ -1,18 +1,18 @@
-import typer
-
+from cyclopts import App
 from . import agent
 from . import authorization
 from . import gemini_app
 from . import reasoning_engine
 from . import ai_lro
 
-app = typer.Typer(no_args_is_help=True)
-app.add_typer(agent.app, name="agent")
-app.add_typer(authorization.app, name="authorization")
-app.add_typer(gemini_app.app, name="gemini-app")
-app.add_typer(reasoning_engine.app, name="reasoning-engine")
-app.add_typer(ai_lro.app, name="ai-lro")
+app = App()
+app.command(agent.app)
+app.command(authorization.app)
+app.command(gemini_app.app)
+app.command(reasoning_engine.app)
+app.command(ai_lro.app)
 
 
 if __name__ == "__main__":
     app()
+

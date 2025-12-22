@@ -1,4 +1,4 @@
-import typer
+from cyclopts import App
 from rich.console import Console
 from rich.table import Table
 from rich import box
@@ -10,7 +10,10 @@ import time
 from requests.exceptions import HTTPError
 from .helpers import AiPlatformRequestHelper, paginate
 
-app = typer.Typer(no_args_is_help=True)
+app = App(
+    "ai-lro",
+    help="commands related to ai long running operations",
+)
 
 
 def print_list(data):
