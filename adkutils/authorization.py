@@ -121,6 +121,6 @@ def delete(project_id: str, location: str, auth_id: str):
     helper = DiscoveryEngineRequestHelper(project_id, location)
     try:
         response = helper.delete(f"authorizations/{auth_id}")
-        rprint(f"[green]Authorization deleted[/green]")
+        rprint("[green]Authorization deleted[/green]")
     except HTTPError as e:
         rprint(f"[bright_red]{e.response.text}[/bright_red]")

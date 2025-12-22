@@ -4,8 +4,6 @@ from rich.console import Console
 from rich.table import Table
 from rich import box
 from rich import print as rprint
-from typing_extensions import Annotated
-from typing import List, Optional
 from requests.exceptions import HTTPError
 
 app = App(
@@ -24,7 +22,7 @@ def create_or_update(
     tool_description: str,
     reasoning_engine_id: str,
     reasoning_engine_location: str,
-    auth_ids: list[str],
+    auth_ids: list[str] = [],
     icon_uri: str | None = None,
     existing_agent_id: str | None = None,
 ):
@@ -88,7 +86,7 @@ def delete(project_id: str, location: str, gemini_app_id: str, agent_id: str):
         response = helper.delete(
             f"collections/default_collection/engines/{gemini_app_id}/assistants/default_assistant/agents/{agent_id}"
         )
-        rprint(f"[green]Agent deleted[/green]")
+        rprint("[green]Agent deleted[/green]")
     except HTTPError as e:
         rprint(f"[bright_red]{e.response.text}[/bright_red]")
 
@@ -125,6 +123,7 @@ def print_list(data):
 
 @app.command()
 def list(project_id: str, location: str, app_id: str):
+    # TODO: fix ordering
     helper = DiscoveryEngineRequestHelper(project_id, location)
     paginate(
         lambda params: helper.get(

@@ -16,7 +16,7 @@ app = App(
 )
 
 
-def print_list(data):
+def get_list(data):
     table = Table(box=box.SQUARE, show_lines=True)
     table.add_column("LRO IDs", style="bright_green")
     table.add_column("Type")
@@ -50,8 +50,7 @@ def print_list(data):
 
         table.add_row(name, lro_type, status + "\n" + dates, response)
 
-    console = Console(highlight=False)
-    console.print(table)
+    return table
 
 
 @app.command()
@@ -71,7 +70,7 @@ def list(project_id: str, location: str):
     helper = AiPlatformRequestHelper(project_id, location)
     paginate(
         lambda params: helper.get("operations", params),
-        lambda data: print_list(data),
+        lambda data: app.console.print(get_list(data)),
     )
 
 
@@ -91,7 +90,7 @@ def follow(project_id: str, location: str, reasoning_engine_id: str, lro_id: str
             lro_data = helper.get(
                 f"reasoningEngines/{reasoning_engine_id}/operations/{lro_id}"
             )
-            live.update(print_list({"operations": [lro_data]}), refresh=True)
+            live.update(get_list({"operations": [lro_data]}), refresh=True)
             if lro_data.get("done", False):
                 break
             time.sleep(SLEEP)
