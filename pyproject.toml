@@ -1,6 +1,6 @@
 [project]
 name = "adkutils"
-version = "0.3.0"
+version = "0.3.1"
 description = "CLI utility to manage: reasoning engine agents, authorizations, gemini enterprise agents, etc."
 readme = "README.md"
 requires-python = ">=3.10"

@@ -6,6 +6,7 @@ from . import reasoning_engine
 from . import ai_lro
 
 app = App()
+app.register_install_completion_command()
 app.command(agent.app)
 app.command(authorization.app)
 app.command(gemini_app.app)
@@ -15,4 +16,3 @@ app.command(ai_lro.app)
 
 if __name__ == "__main__":
     app()
-
