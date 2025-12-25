@@ -211,7 +211,12 @@ def delete(project_id: str, location: str, agent_engine_id: str, force: bool = F
 
 @app.command()
 async def remote_prompt(
-    project_id: str, location: str, agent_engine_id: str, prompt: str, auth_to_fill: str
+    project_id: str,
+    location: str,
+    agent_engine_id: str,
+    prompt: str,
+    auth_to_fill: str,
+    forced_access_token: str | None = None,
 ):
     """Sends prompt to remote agent engine that was previously deployed.
     This is used as a basic test.
@@ -234,10 +239,15 @@ async def remote_prompt(
         f"operation count:{len(adk_app.operation_schemas())}. Note: if 0, deployment was missing classMethods"
     )
     print("-" * 50)
-    creds, project_id = auth.default()
-    auth_req = req.Request()
-    creds.refresh(auth_req)
-    access_token = creds.token
+    if forced_access_token:
+        rprint("[bright_yellow]using the specified forced access token[/bright_yellow]")
+        access_token = forced_access_token
+    else:
+        rprint("[bright_yellow]using a token generated from ADC[/bright_yellow]")
+        creds, project_id = auth.default()
+        auth_req = req.Request()
+        creds.refresh(auth_req)
+        access_token = creds.token
 
     request_json_simple = json.dumps(
         {

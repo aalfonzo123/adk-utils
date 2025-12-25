@@ -9,3 +9,6 @@ etc/
 
 # Virtual environments
 .venv
+
+# extra
+set_auth_token_env_var.sh
