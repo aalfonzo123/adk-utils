@@ -78,7 +78,7 @@ def generate_auth_uri(client_id: str, scopes: list[str], base_auth_uri: str) -> 
 
 
 @app.command()
-def get_token(
+def execute_flow(
     project_id: str,
     location: str,
     auth_id: str,
@@ -215,3 +215,48 @@ def delete(project_id: str, location: str, auth_id: str):
         rprint("[green]Authorization deleted[/green]")
     except HTTPError as e:
         rprint(f"[bright_red]{e.response.text}[/bright_red]")
+
+
+@app.command()
+def execute_flow_ge(
+    project_id: str,
+    location: str,
+    auth_id: str,
+    redirect_uri: str = "https://vertexaisearch.cloud.google.com/oauth-redirect",
+    extra_url_params: dict[str, str] | None = None,
+    destination_env_var: str = "GE_AUTH_TOKEN",
+):
+    try:
+        helper = DiscoveryEngineRequestHelper(project_id, location)
+        auth = helper.post(f"authorizations/{auth_id}:acquireUserAuthorization", None)
+        # rprint(json.dumps(auth))
+
+        if access_token := auth.get("accessToken"):
+            rprint(
+                "[bright_yellow]You are already logged in, writing access token to file[/bright_yellow]\n"
+            )
+            script = "set_auth_token_env_var.sh"
+            with open(script, "w") as f:
+                f.write(f"{destination_env_var}={access_token}")
+            print(
+                f"script written, to activate use:\n"
+                f"source ./{script}\n\n"
+                "after that, you can use the variable like this:\n"
+                f"[your command here] ${destination_env_var}"
+            )
+        else:
+            rprint(
+                "[bright_yellow]You are not logged in, executing authorization flow[/bright_yellow]\n"
+            )
+            params = {"redirect_uri": redirect_uri} | (extra_url_params or {})
+            authorizationUri = auth["authorizationUri"] + "&" + urlencode(params)
+
+            print(
+                f"Please open the following URL in your browser to authorize the application:\n{authorizationUri}\n"
+            )
+            response_url = input("\nPaste the full redirected URL here: ")
+            data = {"fullRedirectUri": response_url}
+            auth = helper.post(f"authorizations/{auth_id}:storeUserAuthorization", data)
+            rprint("[green]authorization was stored successfully[/green]")
+    except (HTTPError, ValueError) as e:
+        rprint(f"[bright_red]{e}[/bright_red]")
