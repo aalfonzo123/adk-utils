@@ -5,6 +5,7 @@ from rich.table import Table
 from rich import box
 from rich import print as rprint
 from requests.exceptions import HTTPError
+import json
 
 app = App(
     "agent",
@@ -91,7 +92,11 @@ def delete(project_id: str, location: str, gemini_app_id: str, agent_id: str):
         rprint(f"[bright_red]{e.response.text}[/bright_red]")
 
 
-def print_list(data):
+def print_list(data, format_raw: bool):
+    if format_raw:
+        print(json.dumps(data, indent=2))
+        return
+
     table = Table(box=box.SQUARE, show_lines=True)
     table.add_column("Agent ID", style="bright_green")
     table.add_column("Display Name")
@@ -122,7 +127,7 @@ def print_list(data):
 
 
 @app.command()
-def list(project_id: str, location: str, app_id: str):
+def list(project_id: str, location: str, app_id: str, format_raw: bool = False):
     # TODO: fix ordering
     helper = DiscoveryEngineRequestHelper(project_id, location)
     paginate(
@@ -130,5 +135,5 @@ def list(project_id: str, location: str, app_id: str):
             f"collections/default_collection/engines/{app_id}/assistants/default_assistant/agents",
             params,
         ),
-        lambda data: print_list(data),
+        lambda data: print_list(data, format_raw),
     )
