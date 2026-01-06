@@ -60,11 +60,12 @@ def print_list(data):
 
 
 @app.command()
-def list(project_id: str, location: str):
+def list(project_id: str, location: str, format_raw: bool = False):
     helper = AiPlatformRequestHelper(project_id, location)
     paginate(
         lambda params: helper.get("reasoningEngines", params),
         lambda data: print_list(data),
+        format_raw,
     )
 
 

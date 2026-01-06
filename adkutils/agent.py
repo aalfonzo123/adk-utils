@@ -54,7 +54,9 @@ def create_or_update(
             "provisioned_reasoning_engine": {
                 "reasoning_engine": f"projects/{project_id}/locations/{reasoning_engine_location}/reasoningEngines/{reasoning_engine_id}"
             },
-            "authorizations": [
+        },
+        "authorizationConfig": {
+            "toolAuthorizations": [
                 f"projects/{project_num}/locations/{location}/authorizations/{auth_id}"
                 for auth_id in auth_ids
             ],
@@ -92,11 +94,7 @@ def delete(project_id: str, location: str, gemini_app_id: str, agent_id: str):
         rprint(f"[bright_red]{e.response.text}[/bright_red]")
 
 
-def print_list(data, format_raw: bool):
-    if format_raw:
-        print(json.dumps(data, indent=2))
-        return
-
+def print_list(data):
     table = Table(box=box.SQUARE, show_lines=True)
     table.add_column("Agent ID", style="bright_green")
     table.add_column("Display Name")
@@ -135,5 +133,6 @@ def list(project_id: str, location: str, app_id: str, format_raw: bool = False):
             f"collections/default_collection/engines/{app_id}/assistants/default_assistant/agents",
             params,
         ),
-        lambda data: print_list(data, format_raw),
+        lambda data: print_list(data),
+        format_raw,
     )

@@ -25,11 +25,7 @@ app = App(
 DEFAULT_SCOPES = ["https://www.googleapis.com/auth/cloud-platform", "openid"]
 
 
-def print_list(data, format_raw: bool):
-    if format_raw:
-        print(json.dumps(data, indent=2))
-        return
-
+def print_list(data):
     table = Table(box=box.SQUARE, show_lines=True)
     table.add_column("Auth ID", style="bright_green")
     table.add_column("Client ID", max_width=20, overflow="fold")
@@ -168,7 +164,8 @@ def list(project_id: str, location: str, format_raw: bool = False):
     helper = DiscoveryEngineRequestHelper(project_id, location)
     paginate(
         lambda params: helper.get("authorizations", params),
-        lambda data: print_list(data, format_raw),
+        lambda data: print_list(data),
+        format_raw,
     )
 
 
