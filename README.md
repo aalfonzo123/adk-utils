@@ -187,6 +187,10 @@ Commands for managing Reasoning Engines in Google Cloud AI Platform.
 
 Deploys a reasoning engine from a local source directory.
 
+Before executing this command, make sure that:
+- There is a requirements.txt in the agent directory. Use "uv pip freeze > agentdir/requirements.txt" or similar
+- There are no "editable mode" lines in the requirements.txt file, the ones that start with "-e". Those will make the deployment fail with a "does not appear to be a Python project" error.
+
 **Usage:**
 ```bash
 adk-utils reasoning-engine deploy-from-source <project_id> <location> <source_dir> <name> <display_name> [OPTIONS]

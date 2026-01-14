@@ -27,8 +27,8 @@ def print_list(data):
     table.add_column("Display Name")
     table.add_column("Update Time")
     table.add_column("Deployment Info")
-    # table.add_column("Class Methods")
-    table.add_column("Env vars")
+    table.add_column("S.Account", overflow="fold")
+    table.add_column("Env vars", overflow="fold")
 
     for item in data.get("reasoningEngines", []):
         name = item["name"].split("/")[-1]
@@ -36,6 +36,7 @@ def print_list(data):
         updateTime = item.get("updateTime", "N.A")
 
         spec = item.get("spec", {})
+        serviceAccount = spec.get("serviceAccount", "(default)")
         # class_methods = ", ".join(
         #     [m.get("name", "[no-name]") for m in spec.get("classMethods", [])]
         # )
@@ -53,7 +54,9 @@ def print_list(data):
         env = deploymentSpec.get("env", [])
         env_vars = ", ".join([f"{e['name']}: {e['value']}" for e in env])
 
-        table.add_row(name, display_name, updateTime, deployment_info, env_vars)
+        table.add_row(
+            name, display_name, updateTime, deployment_info, serviceAccount, env_vars
+        )
 
     console = Console(highlight=False)
     console.print(table)
@@ -107,6 +110,10 @@ def deploy_from_source(
 ):
     """
     Deploys a reasoning engine from a local source directory.
+
+    Before executing this command, make sure that:
+    - There is a requirements.txt in the agent directory. Use "uv pip freeze > agentdir/requirements.txt" or similar
+    - There are no "editable mode" lines in the requirements.txt file, the ones that start with "-e". Those will make the deployment fail with a "does not appear to be a Python project" error.
 
     Args:
         project_id (str): The Google Cloud project ID.
