@@ -2,9 +2,11 @@ from cyclopts import App
 import os
 import json
 from .helpers import AiPlatformRequestHelper, paginate
-from rich.console import Console
-from rich.table import Table
-from rich import box
+from .print_list_helper import (
+    col_spec,
+    get_table_generic,
+    after_last_slash,
+)
 from rich import print as rprint
 import tarfile
 import io
@@ -21,45 +23,47 @@ app = App(
 )
 
 
-def print_list(data):
-    table = Table(box=box.SQUARE, show_lines=True)
-    table.add_column("R.Engine ID", style="bright_green")
-    table.add_column("Display Name")
-    table.add_column("Update Time")
-    table.add_column("Deployment Info")
-    table.add_column("S.Account", overflow="fold")
-    table.add_column("Env vars", overflow="fold")
+def get_deployment_info(item):
+    spec = item.get("spec", {})
+    sourceCodeSpec = spec.get("sourceCodeSpec", {})
+    pythonSpec = sourceCodeSpec.get("pythonSpec", {})
+    entrypointModule = pythonSpec.get("entrypointModule")
+    entrypointObject = pythonSpec.get("entrypointObject")
 
-    for item in data.get("reasoningEngines", []):
-        name = item["name"].split("/")[-1]
-        display_name = item.get("displayName", "N.A")
-        updateTime = item.get("updateTime", "N.A")
-
-        spec = item.get("spec", {})
-        serviceAccount = spec.get("serviceAccount", "(default)")
-        # class_methods = ", ".join(
-        #     [m.get("name", "[no-name]") for m in spec.get("classMethods", [])]
-        # )
-        sourceCodeSpec = spec.get("sourceCodeSpec", {})
-        pythonSpec = sourceCodeSpec.get("pythonSpec", {})
-        entrypointModule = pythonSpec.get("entrypointModule")
-        entrypointObject = pythonSpec.get("entrypointObject")
-
-        if entrypointModule and entrypointObject:
-            deployment_info = f"entrypointModule:{entrypointModule}\nentrypointObject:{entrypointObject}"
-        else:
-            deployment_info = "?"
-
-        deploymentSpec = spec.get("deploymentSpec", {})
-        env = deploymentSpec.get("env", [])
-        env_vars = ", ".join([f"{e['name']}: {e['value']}" for e in env])
-
-        table.add_row(
-            name, display_name, updateTime, deployment_info, serviceAccount, env_vars
+    if entrypointModule and entrypointObject:
+        return (
+            f"entrypointModule:{entrypointModule}\nentrypointObject:{entrypointObject}"
         )
+    else:
+        return "?"
 
-    console = Console(highlight=False)
-    console.print(table)
+
+def print_list(data):
+    app.console.print(
+        get_table_generic(
+            data,
+            "reasoningEngines",
+            [
+                col_spec("R.Engine ID", style="bright_green"),
+                "Display Name",
+                "Update Time",
+                col_spec("Deployment Info", overflow="fold"),
+                col_spec("S.Account", overflow="fold"),
+                col_spec("Env vars", overflow="fold"),
+            ],
+            [
+                ("name", after_last_slash),
+                "displayName",
+                "updateTime",
+                (None, get_deployment_info),
+                ("spec.serviceAccount", None, "(default)"),
+                (
+                    "spec.deploymentSpec.env",
+                    lambda env: ", ".join([f"{e['name']}: {e['value']}" for e in env]),
+                ),
+            ],
+        )
+    )
 
 
 @app.command()

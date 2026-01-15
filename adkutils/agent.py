@@ -100,6 +100,7 @@ def print_list(data):
     app.console.print(
         get_table_generic(
             data,
+            "agents",
             [
                 col_spec("Agent ID", style="bright_green"),
                 "Display Name",
