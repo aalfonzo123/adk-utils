@@ -1,11 +1,13 @@
 from cyclopts import App
 from .helpers import DiscoveryEngineRequestHelper, paginate
-from rich.console import Console
-from rich.table import Table
-from rich import box
 from rich import print as rprint
 from requests.exceptions import HTTPError
-import json
+from .print_list_helper import (
+    col_spec,
+    get_table_generic,
+    after_last_slash,
+    after_last_slash_multi,
+)
 
 app = App(
     "agent",
@@ -95,33 +97,31 @@ def delete(project_id: str, location: str, gemini_app_id: str, agent_id: str):
 
 
 def print_list(data):
-    table = Table(box=box.SQUARE, show_lines=True)
-    table.add_column("Agent ID", style="bright_green")
-    table.add_column("Display Name")
-    table.add_column("Reasoning Engine Name")
-    table.add_column("Authorizations")
-    table.add_column("Update Time")
-
-    for agent in data.get("agents", []):
-        name = agent["name"].split("/")[-1]  # Just the agent ID
-        display_name = agent.get("displayName", "N.A")
-        adk_definition = agent.get("adkAgentDefinition", {})
-        update_time = agent.get("updateTime", "N.A")
-        provisioned_engine = adk_definition.get("provisionedReasoningEngine", {})
-        reasoning_engine_name = provisioned_engine.get("reasoningEngine", "N.A").split(
-            "/"
-        )[-1]
-        authorizations = adk_definition.get("authorizations", [])
-        auth_ids = (
-            ", ".join([auth.split("/")[-1] for auth in authorizations])
-            if authorizations
-            else "N.A"
+    app.console.print(
+        get_table_generic(
+            data,
+            [
+                col_spec("Agent ID", style="bright_green"),
+                "Display Name",
+                "Reasoning Engine Name",
+                "Authorizations",
+                "Update Time",
+            ],
+            [
+                ("name", after_last_slash),
+                "displayName",
+                (
+                    "adkAgentDefinition.provisionedReasoningEngine.reasoningEngine",
+                    after_last_slash,
+                ),
+                (
+                    "adkAgentDefinition.authorizations",
+                    after_last_slash_multi,
+                ),
+                "updateTime",
+            ],
         )
-
-        table.add_row(name, display_name, reasoning_engine_name, auth_ids, update_time)
-
-    console = Console(highlight=False)
-    console.print(table)
+    )
 
 
 @app.command()
