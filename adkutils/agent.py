@@ -3,7 +3,6 @@ from .helpers import DiscoveryEngineRequestHelper, paginate
 from rich import print as rprint
 from requests.exceptions import HTTPError
 from .print_list_helper import (
-    col_spec,
     get_table_generic,
     after_last_slash,
     after_last_slash_multi,
@@ -99,28 +98,24 @@ def delete(project_id: str, location: str, gemini_app_id: str, agent_id: str):
 def print_list(data):
     app.console.print(
         get_table_generic(
-            data,
-            "agents",
-            [
-                col_spec("Agent ID", style="bright_green"),
-                "Display Name",
-                "Reasoning Engine Name",
-                "Authorizations",
-                "Update Time",
-            ],
-            [
-                ("name", after_last_slash),
-                "displayName",
-                (
-                    "adkAgentDefinition.provisionedReasoningEngine.reasoningEngine",
-                    after_last_slash,
-                ),
-                (
-                    "adkAgentDefinition.authorizations",
-                    after_last_slash_multi,
-                ),
-                "updateTime",
-            ],
+            data.get("agents"),
+            {
+                "Agent ID": {
+                    "opts": {"style": "bright_green"},
+                    "path": "name",
+                    "proc": after_last_slash,
+                },
+                "Display Name": "displayName",
+                "Reasoning Engine Name": {
+                    "path": "adkAgentDefinition.provisionedReasoningEngine.reasoningEngine",
+                    "proc": after_last_slash,
+                },
+                "Authorizations": {
+                    "path": "adkAgentDefinition.authorizations",
+                    "proc": after_last_slash_multi,
+                },
+                "Update Time": "updateTime",
+            },
         )
     )
 

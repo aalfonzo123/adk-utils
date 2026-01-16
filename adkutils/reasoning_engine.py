@@ -3,7 +3,6 @@ import os
 import json
 from .helpers import AiPlatformRequestHelper, paginate
 from .print_list_helper import (
-    col_spec,
     get_table_generic,
     after_last_slash,
 )
@@ -23,45 +22,39 @@ app = App(
 )
 
 
-def get_deployment_info(item):
-    spec = item.get("spec", {})
-    sourceCodeSpec = spec.get("sourceCodeSpec", {})
-    pythonSpec = sourceCodeSpec.get("pythonSpec", {})
-    entrypointModule = pythonSpec.get("entrypointModule")
-    entrypointObject = pythonSpec.get("entrypointObject")
-
-    if entrypointModule and entrypointObject:
-        return (
-            f"entrypointModule:{entrypointModule}\nentrypointObject:{entrypointObject}"
-        )
-    else:
-        return "?"
-
-
 def print_list(data):
     app.console.print(
         get_table_generic(
-            data,
-            "reasoningEngines",
-            [
-                col_spec("R.Engine ID", style="bright_green"),
-                "Display Name",
-                "Update Time",
-                col_spec("Deployment Info", overflow="fold"),
-                col_spec("S.Account", overflow="fold"),
-                col_spec("Env vars", overflow="fold"),
-            ],
-            [
-                ("name", after_last_slash),
-                "displayName",
-                "updateTime",
-                (None, get_deployment_info),
-                ("spec.serviceAccount", None, "(default)"),
-                (
-                    "spec.deploymentSpec.env",
-                    lambda env: ", ".join([f"{e['name']}: {e['value']}" for e in env]),
-                ),
-            ],
+            data.get("reasoningEngines"),
+            {
+                "R.Engine ID": {
+                    "opts": {"style": "bright_green"},
+                    "path": "name",
+                    "proc": after_last_slash,
+                },
+                "Display Name": "displayName",
+                "Update Time": "updateTime",
+                "Deployment Info": {
+                    "opts": {"overflow": "fold"},
+                    "base_path": "spec.sourceCodeSpec.pythonSpec",
+                    "path": ["entrypointModule", "entrypointObject"],
+                    "proc": lambda values: f"entrypointModule:{values['entrypointModule']}\nentrypointObject:{values['entrypointObject']}"
+                    if values["entrypointModule"] and values["entrypointObject"]
+                    else None,
+                },
+                "S.Account": {
+                    "opts": {"overflow": "fold"},
+                    "path": "spec.serviceAccount",
+                    "default": "(default)",
+                },
+                "Env vars": {
+                    "opts": {"overflow": "fold"},
+                    "path": "spec.deploymentSpec.env",
+                    "proc": lambda env: ", ".join(
+                        [f"{e['name']}: {e['value']}" for e in env]
+                    ),
+                },
+            },
         )
     )
 

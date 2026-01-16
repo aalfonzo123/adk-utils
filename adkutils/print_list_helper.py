@@ -1,8 +1,8 @@
-from typing import Callable, Any
+from typing import Any, Union
 from rich.table import Table
 from rich import box
 
-DEFAULT_KWARGS = {"default_value": "N.A."}
+DEFAULT_VALUE = "N.A."
 
 
 def after_last_slash(v):
@@ -29,107 +29,110 @@ def after_last_slash_multi(v: list[str]) -> str:
     return ", ".join([elem.split("/")[-1] for elem in v])
 
 
-def _get_safe(
-    object: Any,
-    path: str,
-    on_found: Callable | None = None,
-    default_value: Any | None = None,
-):
-    """Safely gets a value from a nested object and optionally transforms it.
+def _get_safe_single_path(original_obj: Any, path_str: str) -> Any:
+    """Safely retrieves a value from a nested object using a dot-separated path.
+
+    This function traverses an object (or dictionary) based on the provided path
+    string. If any part of the path is not found, it returns None.
 
     Args:
-        object: The object to traverse.
-        path: The path to the value, separated by dots.
-        on_found: A function to call with the value if it's found.
-        default_value: The value to return if the path is not found.
+        original_obj: The object or dictionary to traverse.
+        path_str: A dot-separated string representing the path to the desired value
+                  (e.g., "metadata.name", "spec.template.spec.containers[0].image").
 
     Returns:
-        The transformed value if found, otherwise the default_value.
+        The value found at the specified path, or None if any part of the path
+        does not exist or is not accessible.
     """
-    obj = object
-    if path:
-        for element in path.split("."):
-            if hasattr(obj, element):
-                obj = getattr(obj, element)
-            elif isinstance(obj, dict) and element in obj:
-                obj = obj[element]
-            else:
-                return default_value
-    if on_found:
-        return on_found(obj)
+    obj = original_obj
+    if not path_str:
+        return obj
+
+    for element in path_str.split("."):
+        if hasattr(obj, element):
+            obj = getattr(obj, element)
+        elif isinstance(obj, dict) and element in obj:
+            obj = obj[element]
+        else:
+            return None
     return obj
 
 
-class col_spec:
-    """A helper class to define column specifications for rich.Table.
+def _get_safe(obj: Any, path: Union[str, list[str]], base_path: str = "") -> Any:
+    """Safely retrieves a value or values from a nested object.
 
-    Allows passing arbitrary arguments and keywords directly to `table.add_column`.
+    This function allows fetching data from deeply nested structures (objects or dictionaries)
+    using a dot-separated path string. It supports retrieving a single value or multiple
+    values by providing a list of paths.
+
+    Args:
+        obj: The object (or dictionary) to traverse.
+        path: The path(s) to the desired value(s), separated by dots. Can be a single
+              string (e.g., "field.subfield") or a list of strings.
+        base_path: An optional base path string to prepend to all `path` elements.
+                   Useful for common prefixes.
+
+    Returns:
+        If `path` is a string: The value found at the specified path, or `None` if not found.
+        If `path` is a list of strings: A dictionary where keys are the original paths
+        and values are the results of looking for each path in the object (`None` if not found).
+        Returns `None` if `path` is neither a string nor a list.
     """
+    base_path = (
+        base_path if base_path.endswith(".") or base_path == "" else base_path + "."
+    )
+    if isinstance(path, str):
+        return _get_safe_single_path(obj, base_path + path)
+    elif isinstance(path, list):
+        result_dict = {}
+        for p_str in path:
+            result_dict[p_str] = _get_safe_single_path(obj, base_path + p_str)
+        return result_dict
+    else:
+        return None
 
-    def __init__(self, *args: Any, **keywords: Any) -> None:
-        """Initializes a new col_spec instance.
 
-        Args:
-            *args: Positional arguments to be passed to `table.add_column`.
-                   Typically the column header string.
-            **keywords: Keyword arguments to be passed to `table.add_column`.
-                        E.g., `style="bold magenta"`, `overflow="fold"`.
-        """
-        self.args = args
-        self.keywords = keywords
-
-
-def get_table_generic(
-    data: dict[str, list[Any]],
-    data_key: str,
-    col_specs: list[str | col_spec],
-    row_specs: list[str | tuple[str, Callable | None]],
-):
-    """Generates a rich.Table object with data formatted according to column and row specifications.
+def get_table_generic(data: dict[str, list[Any]], col_specs: dict) -> Table:
+    """Generates a rich.Table object with data formatted according to column specifications.
 
     This function dynamically creates a table based on provided column headers and
     specifications for extracting data for each row from a given data source.
 
     Args:
-        data: The raw data containing a list of items to display.
-                     Expected to have a key (`data_key`) that holds a list of
-                     dictionaries or objects.
-        data_key: The key in the `data` dictionary that points to the list of items
-                  to be displayed in the table.
-        col_specs: A list of column specifications. Each element can be:
-                          - A `str` for a simple column header.
-                          - A `col_spec` object for advanced column formatting
-                            (e.g., style, overflow).
-        row_specs: A list of row data specifications. Each element can be:
-                          - A `str` representing a dot-separated path to a value
-                            within each item in `data` (e.g., "name", "spec.displayName").
-                          - A `tuple` where the first element is the path (`str`)
-                            and the second element is an optional `Callable` to
-                            transform the found value (e.g., `("name", after_last_slash)`).
+        data: A dictionary where keys are string identifiers and values are lists of
+              items (dictionaries or objects) to be displayed in the table. Each item
+              in the list represents a row.
+        col_specs: A dictionary defining column headers and their specifications.
+                   Keys are the column headers (str). Values can be either:
+                   - A `str`: representing a dot-separated path to a value within each item in `data`
+                     (e.g., "name", "spec.displayName").
+                   - A `dict`: containing the following keys:
+                     - `path` (str, required): Dot-separated path to the value.
+                     - `opts` (dict, optional): Keyword arguments for `table.add_column`
+                       (e.g., `{"style": "bold magenta"}`).
+                     - `proc` (Callable, optional): A function to transform the found value.
+                     - `default` (Any, optional): Default value to display if path not found.
 
     Returns:
         rich.table.Table: A formatted rich Table object ready for printing.
     """
 
     table = Table(box=box.SQUARE, show_lines=True)
-    for cs in col_specs:
-        if isinstance(cs, col_spec):
-            table.add_column(*cs.args, **cs.keywords)
-        else:
-            table.add_column(cs)
-    # print(col_specs)
+    for name, spec in col_specs.items():
+        opts = spec.get("opts", {}) if isinstance(spec, dict) else {}
+        table.add_column(name, **opts)
 
-    # Iterate through the agents and extract the necessary information for display.
-    for item in data.get(data_key, []):
+    for item in data or []:
         result = []
-        for row_spec in row_specs:
-            if isinstance(row_spec, tuple):
-                kwargs = {} if len(row_spec) == 3 else DEFAULT_KWARGS
-                result.append(_get_safe(item, *row_spec, **kwargs))
+        for spec in col_specs.values():
+            if isinstance(spec, dict):
+                default = spec.get("default", DEFAULT_VALUE)
+                value = _get_safe(item, spec["path"], spec.get("base_path", ""))
+                if value and spec.get("proc"):
+                    value = spec["proc"](value)
+                result.append(value or default)
             else:
-                result.append(
-                    _get_safe(item, row_spec, on_found=None, **DEFAULT_KWARGS)
-                )
+                result.append(_get_safe(item, spec) or DEFAULT_VALUE)
 
         # print(result)
         table.add_row(*tuple(result))
