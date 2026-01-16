@@ -1,8 +1,7 @@
 from cyclopts import App
 from .helpers import DiscoveryEngineRequestHelper, paginate
 from rich.console import Console
-from rich.table import Table
-from rich import box
+from .print_list_helper import get_table_generic, after_last_slash
 from rich import print as rprint
 from .rich_utils import rich_format_url
 import json
@@ -26,21 +25,28 @@ DEFAULT_SCOPES = ["https://www.googleapis.com/auth/cloud-platform", "openid"]
 
 
 def print_list(data):
-    table = Table(box=box.SQUARE, show_lines=True)
-    table.add_column("Auth ID", style="bright_green")
-    table.add_column("Client ID", max_width=20, overflow="fold")
-    table.add_column("Authorization URI", overflow="fold")
-
-    for auth in data.get("authorizations", []):
-        name = auth["name"].split("/")[-1]
-        client_id = auth.get("serverSideOauth2", {}).get("clientId", "N.A")
-        auth_uri = auth.get("serverSideOauth2", {}).get("authorizationUri", "N.A")
-        token_uri = auth.get("serverSideOauth2", {}).get("tokenUri", "N.A")
-
-        table.add_row(name, client_id, rich_format_url(auth_uri))
-
     console = Console(highlight=False)
-    console.print(table)
+    console.print(
+        get_table_generic(
+            data.get("authorizations"),
+            {
+                "Auth ID": {
+                    "opts": {"style": "bright_green"},
+                    "path": "name",
+                    "proc": after_last_slash,
+                },
+                "Client ID": {
+                    "opts": {"max_width": 20, "overflow": "fold"},
+                    "path": "serverSideOauth2.clientId",
+                },
+                "Authorization URI": {
+                    "opts": {"overflow": "fold"},
+                    "path": "serverSideOauth2.authorizationUri",
+                    "proc": rich_format_url,
+                },
+            },
+        )
+    )
 
 
 def generate_auth_uri(client_id: str, scopes: list[str], base_auth_uri: str) -> str:
