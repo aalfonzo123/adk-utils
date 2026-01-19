@@ -22,6 +22,8 @@ app = App(
 )
 
 DEFAULT_SCOPES = ["https://www.googleapis.com/auth/cloud-platform", "openid"]
+DEFAULT_BASE_AUTH_URI = "https://accounts.google.com/o/oauth2/v2/auth"
+DEFAULT_TOKEN_URI = "https://oauth2.googleapis.com/token"
 
 
 def print_list(data):
@@ -49,7 +51,26 @@ def print_list(data):
     )
 
 
-def generate_auth_uri(client_id: str, scopes: list[str], base_auth_uri: str) -> str:
+@app.command()
+def generate_auth_uri(
+    project_id: str,
+    location: str,
+    client_id: str,
+    scopes: list[str] = DEFAULT_SCOPES,
+    base_auth_uri: str = DEFAULT_BASE_AUTH_URI,
+):
+    # note: project_id and location are unused, and only here for consistency with
+    # all the other commands
+    app.console.print(
+        rich_format_url(_generate_auth_uri(client_id, scopes, base_auth_uri))
+    )
+
+
+def _generate_auth_uri(
+    client_id: str,
+    scopes: list[str],
+    base_auth_uri: str,
+) -> str:
     """
     Generates the complete authorization URI with the necessary parameters.
 
@@ -181,14 +202,14 @@ def create(
     location: str,
     auth_id: str,
     client_id: str,
-    base_auth_uri: str = "https://accounts.google.com/o/oauth2/v2/auth",
-    token_uri: str = "https://oauth2.googleapis.com/token",
+    base_auth_uri: str = DEFAULT_BASE_AUTH_URI,
+    token_uri: str = DEFAULT_TOKEN_URI,
     scopes: List[str] = DEFAULT_SCOPES,
 ):
     client_secret = get_password("client secret")
     helper = DiscoveryEngineRequestHelper(project_id, location)
 
-    auth_uri = generate_auth_uri(
+    auth_uri = _generate_auth_uri(
         base_auth_uri=base_auth_uri, client_id=client_id, scopes=scopes
     )
 
