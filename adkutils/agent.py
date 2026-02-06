@@ -110,8 +110,12 @@ def print_list(data):
                     "path": "adkAgentDefinition.provisionedReasoningEngine.reasoningEngine",
                     "proc": after_last_slash,
                 },
-                "Authorizations": {
+                "Authorizations Old": {
                     "path": "adkAgentDefinition.authorizations",
+                    "proc": after_last_slash_multi,
+                },
+                "Authorizations": {
+                    "path": "authorizationConfig.toolAuthorizations",
                     "proc": after_last_slash_multi,
                 },
                 "Update Time": "updateTime",

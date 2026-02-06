@@ -1,0 +1,12 @@
+tool_settings:
+  tool_description: sample vector search
+data_science_agent_config:
+  bq_project_id: as-alf-argolis
+  bq_dataset_id: alf_vector
+  # nlQueryConfig:
+  #   nl2sqlPrompt: NL_TO_SQL_INSTRUCTIONS
+  #   nl2sqlExample:
+  #     query: EXAMPLE_NL_QUERY
+  #     expectedSql: EXPECTED_SQL_QUERY
+  #     expectedResponse: EXPECTED_SQL_RESPONSE
+  #   schemaDescription: NL_DESCRIPTION_OF_BQ_DATASET
