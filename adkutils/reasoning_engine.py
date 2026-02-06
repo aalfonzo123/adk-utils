@@ -223,13 +223,23 @@ async def remote_prompt(
     auth_to_fill: str,
     forced_access_token: str | None = None,
 ):
-    """Sends prompt to remote agent engine that was previously deployed.
+    """
+    Sends prompt to remote agent engine that was previously deployed.
     This is used as a basic test.
     Fills auth with token created from currently logged in user.
     Note this works even if the auth doesn't even exist yet, it is filled
     in the session as though it does exist.
     Call is made using streaming_agent_run_with_events, so it is basically equivalent
-    to the call that Gemini Enterprise does."""
+    to the call that Gemini Enterprise does.
+
+    Args:
+        project_id (str): The Google Cloud project ID.
+        location (str): The Google Cloud location for the reasoning engine.
+        agent_engine_id (str): Id of the agent engine, as seen in "reasoning-engine list"
+        prompt (str): Prompt for the agent
+        auth_to_fill (str): Name of the authorization that the agent uses to get an oauth token. Session state will be filled for that name.
+        forced_access_token (str): Oauth token to use. If not specified, an oauth token will automatically be created from the current GCP session.
+    """
     import vertexai
     import google.auth as auth
     from google.auth.transport import requests as req
